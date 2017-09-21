@@ -61,7 +61,17 @@ Template to loop over all nodes in DC/OS cluster and ssh
 ```
 readarray -t nodes < <(dcos node --json | jq -r ".[].hostname" )
 for ip in ${nodes[@]}; do
-  ssh ubuntu@$x "echo hello from $ip"
+  ssh ubuntu@$ip "echo hello from $ip"
+done
+```
+
+Kill Kafka java processes on specified machines
+
+```
+for x in 13.58.5.25 13.58.2.124; do
+  # kill kafka brokers
+  ssh -i ~/.ssh/fdp-seglo-us-east-2.pem ubuntu@$x "sudo pkill -u nobody -f kafka_2.11-0.11.0.0"
+  sleep 10
 done
 ```
 

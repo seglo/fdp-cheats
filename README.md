@@ -50,6 +50,16 @@ https://unix.stackexchange.com/a/2920
 
 https://jqplay.org/
 
+### `du`
+
+Top 10 dirs in CWD
+
+`du -aBM 2>/dev/null | sort -nr | head -n 50 | more`
+
+Size of dirs in CWD
+
+`du -d 1 -h .`
+
 ### `pkill`
 
 Kill processes that contain `kafka-executor.jar` in command: sudo pkill -u root -f kafka-executor.jar

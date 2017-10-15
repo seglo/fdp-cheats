@@ -21,6 +21,23 @@ Use Kafka CLI scripts on DC/OS
 NOTE: Lookup Kafka directory on zookeeper using Exhibitor
 
 `kafka-topics.sh --describe --zookeeper master.mesos:2181/dcos-service-confluent-kafka`
+## VPN
+
+Ubuntu NetworkManager doesn't update `/etc/resolv.conf` with DHCP push params when openvpn connection made
+
+Disabling NetworkManager's own dnsmasq.
+
+Edit `/etc/NetworkManager/NetworkManager.conf`
+
+     #dns=dnsmasq
+
+and restart NetworkManager
+
+    sudo restart network-manager
+
+Source:
+https://serverfault.com/questions/528773/networkmanager-is-not-changing-etc-resolv-conf-after-openvpn-dns-push
+
 
 ## DC/OS CLI
 
@@ -37,6 +54,13 @@ Open shell to leader through public master
 Open shell to mesos agent
 
 `dcos node ssh --private-ip=10.0.0.13 --proxy-ip=18.221.52.123 --option IdentityFile=~/.ssh/fdp-seglo-us-east-2.pem --user=ubuntu`
+
+### `dcos task exec`
+
+List contents of HDFS at `/`
+
+`dcos --debug --log-level=debug task exec data-0-node sh -c "export JAVA_HOME=/opt/mesosphere ; hadoop-*/bin/hadoop fs -ls hdfs://hdfs/"`
+
 
 ## SSH
 
@@ -62,7 +86,7 @@ Size of dirs in CWD
 
 ### `pkill`
 
-Kill processes that contain `kafka-executor.jar` in command: sudo pkill -u root -f kafka-executor.jar
+Kill processes that contain `kafka-executor.jar` in command: `sudo pkill -u root -f kafka-executor.jar`
 
 ### Looping over DC/OS nodes
 

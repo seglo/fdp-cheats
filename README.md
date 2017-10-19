@@ -21,6 +21,34 @@ Use Kafka CLI scripts on DC/OS
 NOTE: Lookup Kafka directory on zookeeper using Exhibitor
 
 `kafka-topics.sh --describe --zookeeper master.mesos:2181/dcos-service-confluent-kafka`
+
+### Quick producer consumer tests
+
+```
+./kafka-topics.sh \
+--zookeeper leader.mesos:2181/dcos-service-kafka \
+--create \
+--topic replicated-topic \
+--partitions 6 \
+--replication-factor 3
+
+# get a broker address with `dcos kafka endpoints broker`
+./kafka-producer-perf-test.sh \
+--topic replicated-topic \
+--num-records 6000 \
+--record-size 100 \
+--throughput 1000 \
+--producer-props bootstrap.servers=10.0.0.203:1025
+
+printf 'group.id=test-consumer-group\n' >> consumer.properties
+
+./kafka-console-consumer.sh \
+--consumer.config consumer.properties \
+--from-beginning \
+--topic replicated-topic \
+--bootstrap-server 10.0.0.203:1025
+```
+
 ## VPN
 
 Ubuntu NetworkManager doesn't update `/etc/resolv.conf` with DHCP push params when openvpn connection made

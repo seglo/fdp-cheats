@@ -77,17 +77,25 @@ List nodes
 
 Open shell to leader through public master
 
-`dcos node ssh --leader --proxy-ip=18.221.52.123 --option IdentityFile=~/.ssh/fdp-seglo-us-east-2.pem --user=ubuntu`
+```
+dcos node ssh --leader --proxy-ip=18.221.52.123 --option IdentityFile=~/.ssh/fdp-seglo-us-east-2.pem --user=ubuntu`
+```
 
 Open shell to mesos agent
 
-`dcos node ssh --private-ip=10.0.0.13 --proxy-ip=18.221.52.123 --option IdentityFile=~/.ssh/fdp-seglo-us-east-2.pem --user=ubuntu`
+```
+dcos node ssh --private-ip=10.0.0.13 --proxy-ip=18.221.52.123 --option IdentityFile=~/.ssh/fdp-seglo-us-east-2.pem --user=ubuntu
+```
 
 ### `dcos task exec`
 
 List contents of HDFS at `/`
 
-`dcos --debug --log-level=debug task exec data-0-node sh -c "export JAVA_HOME=/opt/mesosphere ; hadoop-*/bin/hadoop fs -ls hdfs://hdfs/"`
+> *NOTE:* When executing from the local CLI you must escape the inplace `$` references so it's not escaped at local CLI.
+
+```
+dcos --debug --log-level=debug task exec data-0-node sh -c "export JAVA_HOME=\$(realpath \$MESOS_SANDBOX/jre1.8*) ; \$MESOS_SANDBOX/hadoop-*/bin/hadoop fs -ls hdfs://hdfs/""
+```
 
 
 ## SSH

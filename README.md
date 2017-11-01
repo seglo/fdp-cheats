@@ -66,6 +66,9 @@ and restart NetworkManager
 Source:
 https://serverfault.com/questions/528773/networkmanager-is-not-changing-etc-resolv-conf-after-openvpn-dns-push
 
+### Packages for Ubuntu OpenVPN support
+
+https://help.ubuntu.com/community/NetworkManager
 
 ## DC/OS CLI
 
@@ -129,9 +132,9 @@ Kill processes that contain `kafka-executor.jar` in command: `sudo pkill -u root
 Template to loop over all nodes in DC/OS cluster and ssh
 
 ```
-readarray -t nodes < <(dcos node --json | jq -r ".[].hostname" )
+readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
 for ip in ${nodes[@]}; do
-  ssh ubuntu@$ip "echo hello from $ip"
+  ssh centos@$ip "echo hello from $ip"
 done
 ```
 
@@ -156,7 +159,7 @@ done
 ```
 Add nodes to known_hosts
 ```
-readarray -t nodes < <(dcos node --json | jq -r ".[].hostname" )
+readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
 for ip in ${nodes[@]}; do
   ssh-keyscan -H $ip >> ~/.ssh/known_hosts
 done
@@ -165,9 +168,9 @@ done
 Add my public key to all ubuntu authorized_keys
 
 ```
-readarray -t nodes < <(dcos node --json | jq -r ".[].hostname" )
+readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
 for ip in ${nodes[@]}; do
-  ssh ubuntu@$ip "echo ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAlN1YpqoIyvrrv2p+ngx39n7EcSk7LpQ/jlSqTb21A5LAwOOQZGB1KPtEXCiek262eMuzpLRqrxBjOP4yqrJxpn9Rj4ZrXdGKu/ddxnnjQHu3/LpMUtr2v4LEgMsWzQWTEnPkIMTZbupVCv/+osJH9Grs4soxm5pXa/6+FClbldWIQoFfli9BaQ//0T2GXg15pXFCprMcEzw+PrtguN5mffFgTtS3G2SsEvjQZPiCu7K0yv4Cxzhu1VqgGZV4QNuUkUBPWIGnxEXvqESXErqcOpLSYslaDvYa6Sn720VRD0fM0LqL/2KSxSx4STXujk9Wzg20VQ3QA5cIIugUiwvBzw== seglo@randonom.com | tee -a /home/ubuntu/.ssh/authorized_keys"
+  ssh centos@$ip "echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCRnp7mbIrrt/xj7vNo1U8nQXc3rNVrcXSxcW+QVE9ZHMHndZxcEGBEAxreq613DkywbwZ4oyBFVTBsnTL8qxRDI3lRkGeHTECmYD8X25EiwWIT6GDsp1EYdDW8pix1cYXiuFbGbwrNmyfSUNVnNUmdnS61cnlVc6ONWG0IXJMzzKkpT1o0EwxZEsxl4/vP1qD5ffAdx4ZDfXMKAHrSXPyNqMJ7rix3sRk5b4orBMzvwq5OclkoUBF6kP7eGtZzSSBiY/awB0O+63NliWQ6Kr204Xh4qZgBy4zGcEP3IebwJQH6mb4PWaO3fRN96nO3PWcv5Z3dGm/lfTtF9BQHpex4Kml2wJ5GQ0AfuSHbbqkzZ6eXqwMzaJB/Zf2RYV/9sNpYJrMP145Em4+kM1ZPA+/YN8morT999cdjr2rSilQ8ykdxaaThW4LibhCH24jyg+C0tvAq//VWwsZusNNossyeeoLSYV9zQJ4lSVLyM+a8YWAUDI7pUuWUXGVUk8Bh4V8tcDRM0Pd7WAGLoaeXlgLAy6cFJJKJqNtob+Gh+SdVj4zZDV5H5TKMqcK7tXnuwvbGbSWxLxWE0dwWPis1pdaVU8VRaVk+da151eSN2xjBojjZsAT+RXIcTw61s3YkwC85LpN4sfisu8rl4HL0Rgp5/uv2NJQAMADN0q0dg7WUlQ== gerard.maas@gmail.com | tee -a ~/.ssh/authorized_keys"
   sleep 1
 done
 ```

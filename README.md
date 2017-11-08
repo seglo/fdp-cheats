@@ -15,6 +15,22 @@ Check for failed resource offers:
 
 `journalctl -u dcos-marathon | grep resource`
 
+## DC/OS System Services
+
+System services are installed in `/opt/mesosphere`
+
+See systemd scripts here `/etc/systemd/system`
+
+To view logs for a service use journalctl i.e.) `journalctl -u dcos-mesos-slave -f | less`
+
+## Spark
+
+Run spark job that logs to HDFS for history server
+
+```
+dcos spark run --submit-args="--conf spark.eventLog.enabled=true --conf spark.eventLog.dir=hdfs://hdfs/history --class org.apache.spark.examples.SparkPi https://downloads.mesosphere.com/spark/assets/spark-examples_2.11-2.0.1.jar 30"
+```
+
 ## Kafka
 
 Use Kafka CLI scripts on DC/OS

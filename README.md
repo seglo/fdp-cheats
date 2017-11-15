@@ -179,6 +179,9 @@ done
 # all agents
 .[] | if .type == "agent" then .hostname else null end | select(length > 0)
 
+# all private agents
+.[] | if .type == "agent" and .attributes.public_ip == null then .hostname else null end | select(length > 0)
+
 # all public agents
 .[] | if .type == "agent" and .attributes.public_ip == true then .hostname else null end | select(length > 0)
 

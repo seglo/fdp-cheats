@@ -23,6 +23,18 @@ See systemd scripts here `/etc/systemd/system`
 
 To view logs for a service use journalctl i.e.) `journalctl -u dcos-mesos-slave -f | less`
 
+### mesos-dns
+
+Show all registered entries
+
+http://leader.mesos/mesos_dns/v1/enumerate
+
+### DC/OS API's ref
+
+https://dcos.io/docs/1.10/api/master-routes/
+
+https://dcos.io/docs/1.10/api/agent-routes/
+
 ## Spark
 
 Run spark job that logs to HDFS for history server
@@ -129,6 +141,8 @@ https://unix.stackexchange.com/a/2920
 
 https://jqplay.org/
 
+
+
 ### `du`
 
 Top 10 dirs in CWD
@@ -152,6 +166,24 @@ readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then
 for ip in ${nodes[@]}; do
   ssh centos@$ip "echo hello from $ip"
 done
+```
+
+#### jq strings for different node types
+```
+# leader master
+.[] | if .type == "master (leader)" then .ip else null end | select(length > 0)
+
+# all masters
+.[] | if .type == "master (leader)" then .ip else null end , if .type == "master" then .ip else null end | select(length > 0)
+
+# all agents
+.[] | if .type == "agent" then .hostname else null end | select(length > 0)
+
+# all public agents
+.[] | if .type == "agent" and .attributes.public_ip == true then .hostname else null end | select(length > 0)
+
+# all nodes
+.[] | if .type == "master (leader)" then .ip else null end , if .type == "master" then .ip else null end , if .type == "agent" then .hostname else null end | select(length > 0)
 ```
 
 Kill Kafka java processes on specified machines

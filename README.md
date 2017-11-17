@@ -157,6 +157,16 @@ Size of dirs in CWD
 
 Kill processes that contain `kafka-executor.jar` in command: `sudo pkill -u root -f kafka-executor.jar`
 
+Examples)
+
+```
+# Kill Kafka java processes
+sudo pkill -u nobody -f kafka_2.11-0.11.0.0
+
+# Kill confluent-kafka java processes
+sudo pkill -u root -f kafka-executor.jar
+```
+
 ### Looping over DC/OS nodes
 
 Template to loop over all nodes in DC/OS cluster and ssh
@@ -164,6 +174,9 @@ Template to loop over all nodes in DC/OS cluster and ssh
 ```
 readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
 for ip in ${nodes[@]}; do
+  echo $ip
+  ssh-keygen -f ~/.ssh/known_hosts -R $ip
+  ssh-keyscan -H $ip >> ~/.ssh/known_hosts
   ssh centos@$ip "echo hello from $ip"
 done
 ```
@@ -183,44 +196,30 @@ done
 .[] | if .type == "agent" and .attributes.public_ip == null then .hostname else null end | select(length > 0)
 
 # all public agents
-.[] | if .type == "agent" and .attributes.public_ip == true then .hostname else null end | select(length > 0)
+.[] | if .type == "agent" and .attributes.public_ip then .hostname else null end | select(length > 0)
 
 # all nodes
 .[] | if .type == "master (leader)" then .ip else null end , if .type == "master" then .ip else null end , if .type == "agent" then .hostname else null end | select(length > 0)
 ```
 
-Kill Kafka java processes on specified machines
-
-```
-for x in 13.58.5.25 13.58.2.124; do
-  # kill kafka brokers
-  ssh -i ~/.ssh/fdp-seglo-us-east-2.pem ubuntu@$x "sudo pkill -u nobody -f kafka_2.11-0.11.0.0"
-  sleep 10
-done
-```
-
-Kill confluent-kafka java processes on specified machines
-
-```
-for x in 10.8.0.18 10.8.0.12 10.8.0.21 10.8.0.20 10.8.0.16 10.8.0.25 10.8.0.24; do
-  # kill kafka brokers
-  ssh ubuntu@$x "sudo pkill -u root -f kafka-executor.jar"
-  sleep 10
-done
-```
 Add nodes to known_hosts
 ```
 readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
 for ip in ${nodes[@]}; do
+  echo $ip
+  ssh-keygen -f ~/.ssh/known_hosts -R $ip
   ssh-keyscan -H $ip >> ~/.ssh/known_hosts
 done
 ```
 
-Add my public key to all ubuntu authorized_keys
+Add my public key to all authorized_keys
 
 ```
 readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
 for ip in ${nodes[@]}; do
+  echo $ip
+  ssh-keygen -f ~/.ssh/known_hosts -R $ip
+  ssh-keyscan -H $ip >> ~/.ssh/known_hosts
   ssh centos@$ip "echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCRnp7mbIrrt/xj7vNo1U8nQXc3rNVrcXSxcW+QVE9ZHMHndZxcEGBEAxreq613DkywbwZ4oyBFVTBsnTL8qxRDI3lRkGeHTECmYD8X25EiwWIT6GDsp1EYdDW8pix1cYXiuFbGbwrNmyfSUNVnNUmdnS61cnlVc6ONWG0IXJMzzKkpT1o0EwxZEsxl4/vP1qD5ffAdx4ZDfXMKAHrSXPyNqMJ7rix3sRk5b4orBMzvwq5OclkoUBF6kP7eGtZzSSBiY/awB0O+63NliWQ6Kr204Xh4qZgBy4zGcEP3IebwJQH6mb4PWaO3fRN96nO3PWcv5Z3dGm/lfTtF9BQHpex4Kml2wJ5GQ0AfuSHbbqkzZ6eXqwMzaJB/Zf2RYV/9sNpYJrMP145Em4+kM1ZPA+/YN8morT999cdjr2rSilQ8ykdxaaThW4LibhCH24jyg+C0tvAq//VWwsZusNNossyeeoLSYV9zQJ4lSVLyM+a8YWAUDI7pUuWUXGVUk8Bh4V8tcDRM0Pd7WAGLoaeXlgLAy6cFJJKJqNtob+Gh+SdVj4zZDV5H5TKMqcK7tXnuwvbGbSWxLxWE0dwWPis1pdaVU8VRaVk+da151eSN2xjBojjZsAT+RXIcTw61s3YkwC85LpN4sfisu8rl4HL0Rgp5/uv2NJQAMADN0q0dg7WUlQ== gerard.maas@gmail.com | tee -a ~/.ssh/authorized_keys"
   sleep 1
 done

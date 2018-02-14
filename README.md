@@ -125,9 +125,14 @@ List contents of HDFS at `/`
 > *NOTE:* When executing from the local CLI you must escape the inplace `$` references so it's not escaped at local CLI.
 
 ```
-dcos --debug --log-level=debug task exec data-0-node sh -c "export JAVA_HOME=\$(realpath \$MESOS_SANDBOX/jre1.8*) ; \$MESOS_SANDBOX/hadoop-*/bin/hadoop fs -ls hdfs://hdfs/""
+dcos --debug --log-level=debug task exec data-0-node sh -c "export JAVA_HOME=\$(realpath \$MESOS_SANDBOX/jre1.8*) ; \$MESOS_SANDBOX/hadoop-*/bin/hadoop fs -ls hdfs://hdfs/"
 ```
 
+Get an interactive bash shell within a running container, in this case an HDFS data node.  Get the task name using `dcos task`
+
+```
+dcos task exec --interactive --tty data-0-node bash
+```
 
 ## SSH
 
@@ -153,15 +158,18 @@ Size of dirs in CWD
 
 `du -d 1 -h .`
 
-### `pkill`
+### `pkill`|`pgrep`
 
-Kill processes that contain `kafka-executor.jar` in command: `sudo pkill -u root -f kafka-executor.jar`
+Kill or grep process name processes that contain `kafka-executor.jar` in command: `sudo pkill -u root -f kafka-executor.jar`
 
 Examples)
 
 ```
+# Grep process id and full process name.  **Must match something returned by process name, it can get truncated because of the long class path**
+pkill -u nobody -f kafka_2.11-1.0.0 -a
+
 # Kill Kafka java processes
-sudo pkill -u nobody -f kafka_2.11-0.11.0.0
+sudo pkill -u nobody -f kafka_2.11-1.0.0
 
 # Kill confluent-kafka java processes
 sudo pkill -u root -f kafka-executor.jar
@@ -169,10 +177,10 @@ sudo pkill -u root -f kafka-executor.jar
 
 ### Looping over DC/OS nodes
 
-Template to loop over all nodes in DC/OS cluster and ssh
+Template to loop over all private agents in DC/OS cluster and ssh
 
 ```
-readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
+readarray -t nodes < <(dcos node --json | jq -r '.[] | if .type == "agent" and .attributes.public_ip == null then .hostname else null end | select(length > 0)')
 for ip in ${nodes[@]}; do
   echo $ip
   ssh-keygen -f ~/.ssh/known_hosts -R $ip
@@ -204,7 +212,7 @@ done
 
 Add nodes to known_hosts
 ```
-readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
+readarray -t nodes < <(dcos node --json | jq -r '.[] | if .hostname == null then .ip else .hostname end')
 for ip in ${nodes[@]}; do
   echo $ip
   ssh-keygen -f ~/.ssh/known_hosts -R $ip
@@ -215,7 +223,7 @@ done
 Add my public key to all authorized_keys
 
 ```
-readarray -t nodes < <(dcos node --json | jq -r ".[] | if .hostname == null then .ip else .hostname end")
+readarray -t nodes < <(dcos node --json | jq -r '.[] | if .hostname == null then .ip else .hostname end')
 for ip in ${nodes[@]}; do
   echo $ip
   ssh-keygen -f ~/.ssh/known_hosts -R $ip

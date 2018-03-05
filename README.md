@@ -15,6 +15,12 @@ Check for failed resource offers:
 
 `journalctl -u dcos-marathon | grep resource`
 
+## Mesos
+
+Show `unreserved_resources` of all hosts to check what's available.
+
+`curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" https://leader.mesos/mesos/state.json  --insecure | jq '.slaves | .[] | .hostname ,.unreserved_resources'`
+
 ## DC/OS System Services
 
 System services are installed in `/opt/mesosphere`

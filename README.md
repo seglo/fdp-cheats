@@ -17,10 +17,28 @@ Check for failed resource offers:
 
 ## Mesos
 
-Show `unreserved_resources` of all hosts to check what's available.
+Show `unreserved_resources` of all agents to check what's available.
 
 `curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" https://leader.mesos/mesos/state.json  --insecure | jq '.slaves | .[] | .hostname ,.unreserved_resources'`
 
+Show `reserved_resources_full` all reservations for all agents
+
+`curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" https://leader.mesos/mesos/slaves/state.json --insecure | jq`
+
+## DC/OS diagnostics
+
+dcos-3dt.service is the diagnostics utility for DC/OS systemd components. This service runs on every host, tracking the internal state of the systemd unit. The service runs in two modes, with or without the -pull argument. If running on a master host, it executes /opt/mesosphere/bin/3dt -pull which queries Mesos-DNS for a list of known masters in the cluster, then queries a master (usually itself) :5050/statesummary and gets a list of agents.
+
+From this complete list of cluster hosts, it queries all 3DT health endpoints :1050/system/health/v1/health. This endpoint returns health state for the DC/OS systemd units on that host. The master 3DT processes, along with doing this aggregation also expose /system/health/v1/ endpoints to feed this data by unit or node IP to the DC/OS user interface.
+
+To create a DC/OS diagnostic bundle run these commands from the DC/OS CLI (DC/OS 1.8+),
+
+```
+dcos node diagnostics create all
+dcos node diagnostics --status
+(wait for progress to reach 100%)
+dcos node diagnostics download <bundle_name>
+```
 ## DC/OS System Services
 
 System services are installed in `/opt/mesosphere`

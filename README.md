@@ -160,9 +160,21 @@ dcos task exec --interactive --tty data-0-node bash
 
 ## SSH
 
+### Kill a hung session
+
 Kill a hanging ssh session: `~.`
 
 https://unix.stackexchange.com/a/2920
+
+### Jump hosts with private keys
+
+Add key to local `ssh-agent` then use `-J` jumphost switch on `ssh`
+
+```
+seglo@slice  ~  ssh-add ~/.ssh/fdp-jenkins-us-east-2.pem
+Identity added: /home/seglo/.ssh/fdp-jenkins-us-east-2.pem (/home/seglo/.ssh/fdp-jenkins-us-east-2.pem)
+seglo@slice  ~  ssh -J centos@jumphost centos@some-other-host
+```
 
 ## Shell
 
@@ -244,15 +256,14 @@ for ip in ${nodes[@]}; do
 done
 ```
 
-Add my public key to all authorized_keys
+Add a public key to all authorized_keys on all DC/OS nodes
 
 ```
-readarray -t nodes < <(dcos node --json | jq -r '.[] | if .hostname == null then .ip else .hostname end')
+readarray -t nodes < <(dcos node --json | jq -r '.[] | if .type == "master (leader)" then .ip else null end , if .type == "master" then .ip else null end , if .type == "agent" then .hostname else null end | select(length > 0)')
 for ip in ${nodes[@]}; do
   echo $ip
   ssh-keygen -f ~/.ssh/known_hosts -R $ip
   ssh-keyscan -H $ip >> ~/.ssh/known_hosts
-  ssh centos@$ip "echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCRnp7mbIrrt/xj7vNo1U8nQXc3rNVrcXSxcW+QVE9ZHMHndZxcEGBEAxreq613DkywbwZ4oyBFVTBsnTL8qxRDI3lRkGeHTECmYD8X25EiwWIT6GDsp1EYdDW8pix1cYXiuFbGbwrNmyfSUNVnNUmdnS61cnlVc6ONWG0IXJMzzKkpT1o0EwxZEsxl4/vP1qD5ffAdx4ZDfXMKAHrSXPyNqMJ7rix3sRk5b4orBMzvwq5OclkoUBF6kP7eGtZzSSBiY/awB0O+63NliWQ6Kr204Xh4qZgBy4zGcEP3IebwJQH6mb4PWaO3fRN96nO3PWcv5Z3dGm/lfTtF9BQHpex4Kml2wJ5GQ0AfuSHbbqkzZ6eXqwMzaJB/Zf2RYV/9sNpYJrMP145Em4+kM1ZPA+/YN8morT999cdjr2rSilQ8ykdxaaThW4LibhCH24jyg+C0tvAq//VWwsZusNNossyeeoLSYV9zQJ4lSVLyM+a8YWAUDI7pUuWUXGVUk8Bh4V8tcDRM0Pd7WAGLoaeXlgLAy6cFJJKJqNtob+Gh+SdVj4zZDV5H5TKMqcK7tXnuwvbGbSWxLxWE0dwWPis1pdaVU8VRaVk+da151eSN2xjBojjZsAT+RXIcTw61s3YkwC85LpN4sfisu8rl4HL0Rgp5/uv2NJQAMADN0q0dg7WUlQ== gerard.maas@gmail.com | tee -a ~/.ssh/authorized_keys"
-  sleep 1
+  ssh centos@$ip "echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC8DUxFowJ+z/+53/Uz3DKQ1ciA7KnyNeRX1XJBDLxRugpoIy2Er9J+I38ReakxdJ4FvenLjBiTUMiSBHd9pV33x87z2t2f/Unaj2a+q1khxqFI3KTaEUE1ZqCCARE8zWQ7Y2jGR6n0GFIdlzCa2xYS/844b90Fls89PFJYJ3u7Yq+FyK+pTVjLyhNvSinbuZIwNEZApQITbPPAMx77XC9w+FqhHTITRtorEv7JjL81DHL4Qs31oK0KWoCFW5NwtlnSyR5+oNU/UQ9xEPBPHWvZ4c2OOO9PRxx0CeToCoGpCSnmanMuLtwcqG3lI/D1jpBI7BGLWMGmBvuqXywvFruZTzN5ynYHk59bciSe7FuxvEenQzXMCnePT0almJg3KytmVhzzLytFyehnxE2WGQATVB4Dc9BXtvGYUhLqm2Eo2TQ8hSfzs0b45L4j3uDfeFUkAGygWZdBtU5WA6XxSTCh5yUplRrTBMZKxbI/w9BwoQ1c7LvccTmouZE6pFQap/LECL1hm6HWFVHxkVNTISVKDTOdkvsqzcp8MTUCmGQSia/oRxpRNZZDXd6hatgVqnjYi/DSOxZ0JY4GtXo6RE2O+Ba6aYnnSYS3/csbCnt4KdW6GrxVgXu1561akll7kk2Vf0pMbubQgGlM7sCNnBLWpnsu7CRXRJPAoGnfellm2w== yury.gribkov@gmail.com | tee -a ~/.ssh/authorized_keys"
 done
 ```

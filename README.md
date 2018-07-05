@@ -45,7 +45,25 @@ System services are installed in `/opt/mesosphere`
 
 See systemd scripts here `/etc/systemd/system`
 
+Configuration is in `/opt/mesosphere/etc`
+
 To view logs for a service use journalctl i.e.) `journalctl -u dcos-mesos-slave -f | less`
+
+## DC/OS Service Manual Cleanup
+
+Use `mesosphere/janitor` docker to manually cleanup mesos role's, principal's, and zookeeper namespaces.
+
+1. Kill the secondary scheduler of the service by removing it from marathon Ex) `dcos marathon app remove hdfs`
+2. Kill any zombie tasks running for service first (see `pgrep` and `pkill`)
+3. Use `mesosphere/janitor` docker to manually cleanup mesos role's, principal's, and zookeeper namespaces.  Run `mesosphere/janitor` on any docker host or VPN (auth token required for VPN)
+
+```
+docker run mesosphere/janitor /janitor.py -r sample-role -p sample-principal -z sample-zk --auth_token=<token>
+
+Ex)
+
+docker run mesosphere/janitor /janitor.py -r hdfs-role -p hdfs-principal -z dcos-service-hdfs
+```
 
 ### mesos-dns
 
@@ -103,6 +121,8 @@ printf 'group.id=test-consumer-group\n' >> consumer.properties
 
 ## VPN
 
+### Setup on Ubuntu
+
 Ubuntu NetworkManager doesn't update `/etc/resolv.conf` with DHCP push params when openvpn connection made
 
 Disabling NetworkManager's own dnsmasq.
@@ -121,6 +141,12 @@ https://serverfault.com/questions/528773/networkmanager-is-not-changing-etc-reso
 ### Packages for Ubuntu OpenVPN support
 
 https://help.ubuntu.com/community/NetworkManager
+
+### Troubleshooting connection
+
+Clues to failure (i.e. cert failures) can be seen in syslog.
+
+Tail syslog on server and client: `sudo tail -f /var/log/syslog`
 
 ## DC/OS CLI
 
@@ -181,8 +207,6 @@ seglo@slice  ~  ssh -J centos@jumphost centos@some-other-host
 ### `jq`
 
 https://jqplay.org/
-
-
 
 ### `du`
 
@@ -253,6 +277,7 @@ for ip in ${nodes[@]}; do
   echo $ip
   ssh-keygen -f ~/.ssh/known_hosts -R $ip
   ssh-keyscan -H $ip >> ~/.ssh/known_hosts
+  ssh centos@$ip "echo foobar"
 done
 ```
 

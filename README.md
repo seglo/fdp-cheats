@@ -202,6 +202,10 @@ Identity added: /home/seglo/.ssh/fdp-jenkins-us-east-2.pem (/home/seglo/.ssh/fdp
 seglo@slice  ~  ssh -J centos@jumphost centos@some-other-host
 ```
 
+### Propagate ssh-agent identities to hosts
+
+Add key to `ssh-agent` with `ssh-add privkey`.  Use `-A` with ssh: `ssh -A host`
+
 ## Shell
 
 ### `jq`
